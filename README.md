@@ -46,13 +46,20 @@ ANTHROPIC_API_KEY=sk-ant-your-key
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ```
 
-Run frontend and backend together:
+Run the React development server:
 
 ```bash
-npm run dev
+npm start
 ```
 
 Open `http://localhost:3000`.
+
+For a production build served with the local backend:
+
+```bash
+npm run build
+npm run server
+```
 
 The app still works without an API key, but AI responses will use a fallback message until `ANTHROPIC_API_KEY` is configured.
 
