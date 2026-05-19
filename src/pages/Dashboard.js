@@ -1,182 +1,196 @@
-import React from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
-import { USER_PROFILE, DSA_TOPICS, RATING_HISTORY, RECENT_CONTESTS, DAILY_PLAN, ACHIEVEMENTS, HEATMAP_DATA } from "../data/mockData";
+import React, { useState, useEffect } from "react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { USER_PROFILE, DSA_TOPICS, RATING_HISTORY, RECENT_CONTESTS, DAILY_PLAN, ACHIEVEMENTS, HEATMAP_DATA, AGENT_SWARM } from "../data/mockData";
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{ background: "#1e2230", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px" }}>
-        <p style={{ color: "#9aa0b4", fontSize: 12 }}>{label}</p>
-        <p style={{ color: "#7C6FF7", fontFamily: "JetBrains Mono, monospace", fontWeight: 700 }}>{payload[0].value}</p>
-      </div>
-    );
-  }
-  return null;
-};
+const CT = ({ active, payload, label }) => active && payload?.length ? (
+  <div style={{background:"rgba(0,0,10,.97)",border:"1px solid rgba(0,245,255,.25)",borderRadius:8,padding:"10px 14px",fontFamily:"JetBrains Mono, monospace"}}>
+    <div style={{fontSize:10,color:"#3a5a80",marginBottom:4}}>{label}</div>
+    <div style={{fontSize:16,fontWeight:700,color:"#00f5ff",textShadow:"0 0 10px rgba(0,245,255,.5)"}}>{payload[0].value}</div>
+  </div>
+) : null;
 
-function HeatmapCell({ value }) {
-  const colors = ["#1e2230", "#2d3548", "#4a5c8a", "#7C6FF7", "#a99ff9"];
+function NeuralMastery({ t, i }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const id = setTimeout(() => setW(t.mastery), 100 + i*80); return () => clearTimeout(id); }, [t.mastery, i]);
+  const cls = t.mastery<40?"mc-crit":t.mastery<60?"mc-low":t.mastery<80?"mc-mid":"mc-high";
+  const col = t.mastery<40?"#ff2244":t.mastery<60?"#ffaa00":t.mastery<80?"#00e5ff":"#00ff88";
   return (
-    <div style={{
-      width: 12, height: 12, borderRadius: 2,
-      background: colors[Math.min(value, 4)],
-      transition: "transform 0.1s"
-    }} title={`${value} problems`} />
-  );
-}
-
-function MasteryBar({ topic }) {
-  const cls = topic.mastery < 40 ? "mastery-critical" : topic.mastery < 60 ? "mastery-low" : topic.mastery < 80 ? "mastery-med" : "mastery-high";
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-      <div style={{ width: 130, fontSize: 13, color: topic.mastery < 60 ? "#ffa726" : "#9aa0b4", flexShrink: 0, fontWeight: topic.mastery < 50 ? 600 : 400 }}>
-        {topic.name}
-      </div>
-      <div className="progress-track" style={{ flex: 1 }}>
-        <div className={`progress-fill ${cls}`} style={{ width: `${topic.mastery}%` }} />
-      </div>
-      <div style={{ width: 36, textAlign: "right", fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: topic.mastery < 60 ? "#ffa726" : "#5a6179" }}>
-        {topic.mastery}%
-      </div>
+    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+      <span style={{fontSize:15,width:20,textAlign:"center"}}>{t.icon}</span>
+      <div style={{width:116,fontSize:11.5,color:t.mastery<60?"#ffaa00":"#7aa0c8",fontWeight:t.mastery<55?700:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",fontFamily:"JetBrains Mono, monospace"}}>{t.name}</div>
+      <div className="pt" style={{flex:1}}><div className={`pf ${cls}`} style={{width:`${w}%`}}/></div>
+      <span style={{fontFamily:"JetBrains Mono, monospace",fontSize:10,color:col,width:30,textAlign:"right"}}>{t.mastery}%</span>
     </div>
   );
 }
 
+function HeatCell({ v }) {
+  const bg = v===0?"rgba(0,245,255,.04)":v===1?"rgba(0,245,255,.15)":v===2?"rgba(0,245,255,.3)":v===3?"rgba(0,255,136,.4)":"rgba(0,255,136,.75)";
+  return <div style={{width:11,height:11,borderRadius:2,background:bg,cursor:"default",transition:"background .2s",boxShadow:v>=4?"0 0 6px rgba(0,255,136,.5)":""}} title={`${v} solved`}/>;
+}
+
 export default function Dashboard({ onNavigate }) {
-  const topTopics = [...DSA_TOPICS].sort((a, b) => a.mastery - b.mastery).slice(0, 5);
-  const todayDone = DAILY_PLAN.filter(t => t.done).length;
+  const done = DAILY_PLAN.filter(t=>t.done).length;
+  const weakTop = [...DSA_TOPICS].sort((a,b)=>a.mastery-b.mastery).slice(0,6);
+  const tCol = {practice:"#7c6ff7",study:"#00f5ff",ai:"#00ff88",revision:"#ffaa00",contest:"#ff2244"};
 
   return (
     <div className="page">
       {/* Header */}
-      <div className="page-header">
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <div>
-            <div className="page-title">Good morning, <span>{USER_PROFILE.name.split(" ")[0]}</span> 👋</div>
-            <div className="page-sub">You're on a {USER_PROFILE.streak}-day streak. {6 - todayDone} tasks left today.</div>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate("weakness")}>🎯 Analyze Weaknesses</button>
-            <button className="btn btn-primary btn-sm" onClick={() => onNavigate("tutor")}>🤖 Ask AI</button>
-          </div>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}} className="s1">
+        <div>
+          <div className="ph-eye">command center</div>
+          <h1 className="ph-title">NEXUS <span className="c1">DASHBOARD</span></h1>
+          <p className="ph-sub">Good morning, {USER_PROFILE.name.split(" ")[0]} — AI systems nominal · {USER_PROFILE.streak} streak · {6-done} ops remaining</p>
+        </div>
+        <div style={{display:"flex",gap:8,flexShrink:0,marginTop:4}}>
+          <button className="btn btn-g btn-sm" onClick={()=>onNavigate("weakness")}>◎ Analyze</button>
+          <button className="btn btn-p btn-sm" onClick={()=>onNavigate("neural")}>◉ Neural Twin</button>
+          <button className="btn btn-s btn-sm" onClick={()=>onNavigate("tutor")}>◈ Ask AI</button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="stats-grid">
+      <div className="stat-grid s2">
         {[
-          { val: USER_PROFILE.rating, lbl: "CF Rating", delta: "+47 last contest", up: true },
-          { val: USER_PROFILE.totalSolved, lbl: "Problems Solved", delta: "+12 this week", up: true },
-          { val: USER_PROFILE.contestsParticipated, lbl: "Contests", delta: "Div.2 rank 812", up: true },
-          { val: `${todayDone}/${DAILY_PLAN.length}`, lbl: "Today's Tasks", delta: "2 remaining", up: false },
-          { val: "52%", lbl: "DP Mastery", delta: "Critical gap ⚠", up: false },
-        ].map((s, i) => (
-          <div key={i} className="stat-card">
-            <div className="stat-val">{s.val}</div>
-            <div className="stat-lbl">{s.lbl}</div>
-            <div className={`stat-delta ${s.up ? "delta-up" : "delta-dn"}`}>{s.delta}</div>
+          {v:USER_PROFILE.rating,l:"CF Rating",d:"↑47 last round",cls:"hc",icon:"⭐"},
+          {v:USER_PROFILE.totalSolved,l:"Problems",d:"↑12 this week",cls:"hg",icon:"✓"},
+          {v:USER_PROFILE.contestsParticipated,l:"Contests",d:"Top 4.4% global",cls:"",icon:"🏆"},
+          {v:`${done}/${DAILY_PLAN.length}`,l:"Today's Ops",d:`${DAILY_PLAN.length-done} remaining`,cls:"",icon:"◉"},
+          {v:"52%",l:"DP Mastery",d:"⚠ Critical gap",cls:"",icon:"⚠"},
+        ].map((s,i)=>(
+          <div key={i} className={`sm ${s.cls}`}>
+            <span style={{fontSize:17,marginBottom:8,display:"block"}}>{s.icon}</span>
+            <div className="sm-v">{s.v}</div>
+            <div className="sm-l">{s.l}</div>
+            <div className={`sm-d ${i<3?"du":i===3?"dn":"dd"}`}>{s.d}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 16 }}>
-        {/* Rating Chart */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Rating Trajectory</div>
-              <div className="card-sub">Codeforces performance over 9 months</div>
-            </div>
-            <span className="tag tag-purple">+444 total</span>
+      {/* Agent status */}
+      <div className="hc ac mb16 s3" style={{marginBottom:16}}>
+        <div className="cb">
+          <div className="ch">
+            <div><div className="ct">AI Agent Swarm</div><div className="cs">6 specialized agents — 2 active</div></div>
+            <span className="tag tc">LIVE</span>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={RATING_HISTORY} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="ratingGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#7C6FF7" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#7C6FF7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} domain={["dataMin - 100", "dataMax + 100"]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="rating" stroke="#7C6FF7" strokeWidth={2} fill="url(#ratingGrad)" dot={{ fill: "#7C6FF7", r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: "#a99ff9" }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Today's Plan */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Today's Study Plan</div>
-              <div className="card-sub">AI-generated based on your gaps</div>
-            </div>
-            <span style={{ fontSize: 13, color: "#22c87a", fontWeight: 600 }}>{todayDone}/{DAILY_PLAN.length} done</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {DAILY_PLAN.map((task, i) => {
-              const typeColors = { practice: "#7C6FF7", study: "#42a5f5", ai: "#22c87a", revision: "#ffa726", contest: "#ef5350" };
-              return (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "8px 10px", borderRadius: 8,
-                  background: task.done ? "rgba(34,200,122,0.05)" : "var(--bg3)",
-                  border: `1px solid ${task.done ? "rgba(34,200,122,0.15)" : "var(--border)"}`,
-                  opacity: task.done ? 0.6 : 1
-                }}>
-                  <div style={{ fontSize: 16 }}>{task.done ? "✓" : "○"}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, color: task.done ? "#5a6179" : "var(--text)", textDecoration: task.done ? "line-through" : "none" }}>{task.task}</div>
-                    <div style={{ fontSize: 11, color: "#5a6179" }}>{task.time}</div>
-                  </div>
-                  <div style={{ width: 6, height: 6, borderRadius: 3, background: typeColors[task.type] }} />
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {AGENT_SWARM.map(a=>(
+              <div key={a.id} style={{
+                display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,
+                background:"rgba(5,10,18,.8)",border:`1px solid ${a.status==="active"?a.color+"33":"rgba(0,245,255,.07)"}`,
+                boxShadow:a.status==="active"?`0 0 15px ${a.color}22`:"",
+                transition:"all .2s"
+              }}>
+                <span style={{color:a.color,textShadow:`0 0 8px ${a.color}`,fontSize:15}}>{a.icon}</span>
+                <div>
+                  <div style={{fontSize:11,fontWeight:600,color:a.status==="active"?a.color:"#7aa0c8",fontFamily:"JetBrains Mono, monospace"}}>{a.name}</div>
+                  <div style={{fontSize:9,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace",textTransform:"uppercase",letterSpacing:".08em"}}>{a.status}</div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginBottom: 16 }}>
-        {/* Topic Mastery */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Topic Mastery Map</div>
-              <div className="card-sub">Weakest topics highlighted</div>
-            </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate("weakness")}>Full analysis →</button>
-          </div>
-          {topTopics.map(t => <MasteryBar key={t.id} topic={t} />)}
-          <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {[["#ef5350", "Critical (<40%)"], ["#ffa726", "Weak (40-60%)"], ["#42a5f5", "Mid (60-80%)"], ["#22c87a", "Strong (80%+)"]].map(([c, l]) => (
-              <div key={l} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#5a6179" }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: c }} />{l}
+                {a.status==="active"&&<div style={{width:6,height:6,borderRadius:"50%",background:a.color,boxShadow:`0 0 8px ${a.color}`,animation:"blink 1.5s ease-in-out infinite"}}/>}
               </div>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Recent Contests */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Recent Contests</div>
-              <div className="card-sub">Last 4 Codeforces rounds</div>
+      <div className="g2 mb16 s4">
+        {/* Rating */}
+        <div className="hc ag">
+          <div className="cb">
+            <div className="ch">
+              <div><div className="ct">Rating Trajectory</div><div className="cs">Codeforces · 9mo history</div></div>
+              <span className="tag tg">+444 pts</span>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate("analytics")}>Analytics →</button>
+            <ResponsiveContainer width="100%" height={170}>
+              <AreaChart data={RATING_HISTORY} margin={{top:4,right:4,bottom:0,left:-22}}>
+                <defs>
+                  <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00ff88" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#00ff88" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" tick={{fill:"#3a5a80",fontSize:10,fontFamily:"JetBrains Mono, monospace"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:"#3a5a80",fontSize:10}} axisLine={false} tickLine={false} domain={["dataMin-80","dataMax+80"]}/>
+                <Tooltip content={<CT/>}/>
+                <Area type="monotone" dataKey="rating" stroke="#00ff88" strokeWidth={2.5} fill="url(#rg)"
+                  dot={{fill:"#00ff88",r:3,strokeWidth:0}} activeDot={{r:6,fill:"#00f5ff",strokeWidth:0}}/>
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {RECENT_CONTESTS.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "var(--bg3)", borderRadius: 8, border: "1px solid var(--border)" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text3)" }}>{c.date} · Rank #{c.rank.toLocaleString()} of {c.totalParts.toLocaleString()}</div>
+        </div>
+
+        {/* Daily ops */}
+        <div className="hc ac">
+          <div className="cb">
+            <div className="ch">
+              <div><div className="ct">Daily Operations</div><div className="cs">AI-generated mission briefing</div></div>
+              <span style={{fontFamily:"JetBrains Mono, monospace",fontSize:12,color:"#00ff88",fontWeight:700}}>{done}/{DAILY_PLAN.length}</span>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {DAILY_PLAN.map((t,i)=>(
+                <div key={i} style={{
+                  display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:8,
+                  background:t.done?"rgba(0,255,136,.04)":"rgba(5,10,18,.8)",
+                  border:`1px solid ${t.done?"rgba(0,255,136,.12)":"rgba(0,245,255,.07)"}`,
+                  opacity:t.done?.6:1,transition:"opacity .2s"
+                }}>
+                  <span style={{fontSize:14,color:t.done?"#00ff88":"#1a2a40",fontFamily:"JetBrains Mono, monospace"}}>{t.done?"✓":"○"}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,color:t.done?"#3a5a80":"#e8f4ff",textDecoration:t.done?"line-through":"none"}}>{t.task}</div>
+                    <div style={{fontSize:9,color:"#1a2a40",marginTop:1,fontFamily:"JetBrains Mono, monospace"}}>{t.time}</div>
+                  </div>
+                  <div style={{width:6,height:6,borderRadius:"50%",flexShrink:0,background:tCol[t.type],boxShadow:t.done?`0 0 8px ${tCol[t.type]}`:""}}/>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: c.delta > 0 ? "#22c87a" : "#ef5350", fontFamily: "JetBrains Mono, monospace" }}>{c.delta > 0 ? "+" : ""}{c.delta}</div>
-                  <div style={{ fontSize: 11, color: "var(--text3)" }}>{c.solved} solved</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="g2 mb16 s5">
+        {/* Mastery */}
+        <div className="hc">
+          <div className="cb">
+            <div className="ch">
+              <div><div className="ct">Topic Mastery Map</div><div className="cs">Root-cause weakness analysis</div></div>
+              <button className="btn btn-g btn-xs" onClick={()=>onNavigate("weakness")}>Full map →</button>
+            </div>
+            {weakTop.map((t,i)=><NeuralMastery key={t.id} t={t} i={i}/>)}
+            <div style={{display:"flex",gap:12,marginTop:14,flexWrap:"wrap"}}>
+              {[["#ff2244","Critical"],["#ffaa00","Weak"],["#00e5ff","Mid"],["#00ff88","Strong"]].map(([c,l])=>(
+                <div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:10,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace"}}>
+                  <div style={{width:8,height:8,borderRadius:2,background:c,boxShadow:`0 0 6px ${c}`}}/>{l}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Contests */}
+        <div className="hc">
+          <div className="cb">
+            <div className="ch">
+              <div><div className="ct">Contest History</div><div className="cs">Recent performance</div></div>
+              <button className="btn btn-g btn-xs" onClick={()=>onNavigate("analytics")}>Analytics →</button>
+            </div>
+            {RECENT_CONTESTS.map((c,i)=>(
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
+                background:"rgba(5,10,18,.8)",borderRadius:10,marginBottom:8,
+                border:`1px solid ${c.delta>0?"rgba(0,255,136,.12)":"rgba(255,34,68,.12)"}`,
+                borderLeft:`3px solid ${c.delta>0?"#00ff88":"#ff2244"}`
+              }}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12.5,fontWeight:600,color:"#e8f4ff"}}>{c.name}</div>
+                  <div style={{fontSize:10,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace",marginTop:2}}>{c.date} · #{c.rank.toLocaleString()}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:16,fontWeight:700,fontFamily:"JetBrains Mono, monospace",color:c.delta>0?"#00ff88":"#ff2244",textShadow:`0 0 10px ${c.delta>0?"#00ff88":"#ff2244"}`}}>
+                    {c.delta>0?"+":""}{c.delta}
+                  </div>
+                  <div style={{fontSize:9,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace"}}>{c.solved} solved</div>
                 </div>
               </div>
             ))}
@@ -185,47 +199,54 @@ export default function Dashboard({ onNavigate }) {
       </div>
 
       {/* Heatmap */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-header">
-          <div className="card-title">Activity Heatmap</div>
-          <div className="card-sub">52 weeks of solve activity</div>
-        </div>
-        <div style={{ display: "flex", gap: 3, overflowX: "auto", paddingBottom: 8 }}>
-          {HEATMAP_DATA.map((week, wi) => (
-            <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              {week.map((val, di) => <HeatmapCell key={di} value={val} />)}
-            </div>
-          ))}
+      <div className="hc mb16 s6">
+        <div className="cb">
+          <div className="ch">
+            <div><div className="ct">Activity Matrix</div><div className="cs">52-week solve heatmap</div></div>
+            <span className="tag tg">347 problems</span>
+          </div>
+          <div style={{display:"flex",gap:3,overflowX:"auto",paddingBottom:6}}>
+            {HEATMAP_DATA.map((wk,wi)=>(
+              <div key={wi} style={{display:"flex",flexDirection:"column",gap:3}}>
+                {wk.map((v,di)=><HeatCell key={di} v={v}/>)}
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,justifyContent:"flex-end"}}>
+            <span style={{fontSize:9,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace"}}>Less</span>
+            {[0,1,2,3,4].map(v=><HeatCell key={v} v={v}/>)}
+            <span style={{fontSize:9,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace"}}>More</span>
+          </div>
         </div>
       </div>
 
       {/* Achievements */}
-      <div className="card">
-        <div className="card-header">
-          <div className="card-title">Achievements</div>
-          <div className="card-sub">{ACHIEVEMENTS.filter(a => a.earned).length}/{ACHIEVEMENTS.length} earned</div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
-          {ACHIEVEMENTS.map(a => (
-            <div key={a.id} style={{
-              padding: "12px", borderRadius: 10,
-              background: a.earned ? "rgba(124,111,247,0.08)" : "var(--bg3)",
-              border: `1px solid ${a.earned ? "rgba(124,111,247,0.2)" : "var(--border)"}`,
-              opacity: a.earned ? 1 : 0.5
-            }}>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>{a.icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: a.earned ? "var(--accent2)" : "var(--text2)" }}>{a.name}</div>
-              <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>{a.desc}</div>
-              {!a.earned && a.progress !== undefined && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="progress-track">
-                    <div className="progress-fill mastery-med" style={{ width: `${Math.min((a.progress / (a.id === "a8" ? 2100 : 30)) * 100, 100)}%` }} />
+      <div className="hc">
+        <div className="cb">
+          <div className="ch">
+            <div><div className="ct">Achievement System</div><div className="cs">{ACHIEVEMENTS.filter(a=>a.earned).length}/{ACHIEVEMENTS.length} unlocked</div></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(168px,1fr))",gap:10}}>
+            {ACHIEVEMENTS.map(a=>(
+              <div key={a.id} style={{
+                padding:"14px",borderRadius:12,position:"relative",overflow:"hidden",
+                background:a.earned?"rgba(0,245,255,.04)":"rgba(5,10,18,.8)",
+                border:`1px solid ${a.earned?"rgba(0,245,255,.18)":"rgba(0,245,255,.06)"}`,
+                opacity:a.earned?1:.45,transition:"all .2s"
+              }}>
+                {a.earned&&<div style={{position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,#00f5ff,transparent)"}}/>}
+                <div style={{fontSize:26,marginBottom:8}}>{a.icon}</div>
+                <div style={{fontFamily:"JetBrains Mono, monospace",fontSize:12,fontWeight:700,color:a.earned?"#00f5ff":"#7aa0c8"}}>{a.name}</div>
+                <div style={{fontSize:10,color:"#3a5a80",marginTop:3}}>{a.desc}</div>
+                {!a.earned&&a.progress!==undefined&&(
+                  <div style={{marginTop:10}}>
+                    <div className="pt8"><div className="pf8 mc-mid" style={{width:`${Math.min((a.progress/(a.id==="a8"?2100:30))*100,100)}%`}}/></div>
+                    <div style={{fontSize:9,color:"#3a5a80",marginTop:3,fontFamily:"JetBrains Mono, monospace"}}>{a.progress}{a.id==="a8"?"/2100":"/30"}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 3 }}>{a.progress}{a.id === "a8" ? "/2100" : "/30"}</div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

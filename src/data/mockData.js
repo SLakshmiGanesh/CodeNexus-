@@ -154,3 +154,45 @@ export const HEATMAP_DATA = (() => {
   }
   return data;
 })();
+
+// Extended for Neural Twin
+export const COGNITIVE_PROFILE = {
+  focusScore: 78,
+  fatigueLevel: 22,
+  confidenceIndex: 65,
+  flowState: false,
+  currentMood: "determined",
+  thinkingSpeed: 72,
+  errorTendency: ["off-by-one", "integer overflow", "wrong base case"],
+  strongPatterns: ["sliding window", "two pointers", "BFS"],
+  weakPatterns: ["segment tree lazy", "DP transition design", "bitmask enumeration"],
+  cognitiveLoad: 44,
+  retentionCurve: [100,82,65,50,38,28,20,14],
+  stressProfile: { contest: 68, timed: 72, interview: 80 },
+};
+
+export const NEURAL_PREDICTIONS = [
+  { topic: "Segment Trees", forgettingIn: "3 days", confidence: 88, action: "Review now" },
+  { topic: "DP on Intervals", forgettingIn: "1 week", confidence: 74, action: "Schedule review" },
+  { topic: "Dijkstra variants", forgettingIn: "2 weeks", confidence: 62, action: "Light practice" },
+];
+
+export const AGENT_SWARM = [
+  { id:"prof",   name:"Theory Professor",   status:"idle",    specialty:"Mathematical foundations", color:"#00f5ff", icon:"◈" },
+  { id:"icpc",   name:"ICPC Strategist",    status:"active",  specialty:"Contest tactics & timing", color:"#00ff88", icon:"⚔" },
+  { id:"cf",     name:"CF Grandmaster",     status:"idle",    specialty:"Codeforces meta-strategy",  color:"#ffaa00", icon:"★" },
+  { id:"faang",  name:"FAANG Interviewer",  status:"idle",    specialty:"System design & LC patterns",color:"#bf00ff", icon:"◉" },
+  { id:"psych",  name:"Psych Coach",        status:"active",  specialty:"Burnout detection & pacing", color:"#ff2244", icon:"♥" },
+  { id:"debug",  name:"Debug Agent",        status:"idle",    specialty:"Runtime & logic analysis",  color:"#aaff00", icon:"⚙" },
+];
+
+export const PERFORMANCE_DNA = [
+  { angle: 0,   val: 88, label: "Array intuition" },
+  { angle: 45,  val: 52, label: "DP transitions" },
+  { angle: 90,  val: 67, label: "Graph modeling" },
+  { angle: 135, val: 74, label: "Tree recursion" },
+  { angle: 180, val: 31, label: "Seg tree ops" },
+  { angle: 225, val: 79, label: "Greedy proof" },
+  { angle: 270, val: 61, label: "Number theory" },
+  { angle: 315, val: 83, label: "Binary search" },
+];

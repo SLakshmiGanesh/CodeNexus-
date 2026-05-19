@@ -1,237 +1,190 @@
 import React, { useState } from "react";
-import {
-  AreaChart, Area, BarChart, Bar, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
-} from "recharts";
+import { AreaChart, Area, BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 import { RATING_HISTORY, RECENT_CONTESTS, DSA_TOPICS } from "../data/mockData";
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{ background: "#1e2230", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px" }}>
-        <p style={{ color: "#9aa0b4", fontSize: 12 }}>{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color, fontFamily: "JetBrains Mono, monospace", fontWeight: 700, fontSize: 13 }}>
-            {p.name}: {p.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+const CT = ({ active, payload, label }) => active && payload?.length ? (
+  <div style={{background:"rgba(0,0,10,.97)",border:"1px solid rgba(0,245,255,.22)",borderRadius:8,padding:"10px 14px",fontFamily:"JetBrains Mono, monospace"}}>
+    <div style={{fontSize:10,color:"#3a5a80",marginBottom:4}}>{label}</div>
+    {payload.map((p,i)=>(
+      <div key={i} style={{fontSize:14,fontWeight:700,color:p.color,textShadow:`0 0 10px ${p.color}`}}>{p.name}: {p.value}</div>
+    ))}
+  </div>
+) : null;
 
-const SOLVE_BY_TOPIC = DSA_TOPICS.map(t => ({ name: t.name.split(" ")[0], solved: t.problems, mastery: t.mastery }));
-
-const RADAR_DATA = [
-  { subject: "Arrays", A: 88 }, { subject: "DP", A: 52 }, { subject: "Graphs", A: 67 },
-  { subject: "Trees", A: 74 }, { subject: "SegTree", A: 31 }, { subject: "Greedy", A: 79 },
-  { subject: "Math", A: 61 }, { subject: "Binary", A: 83 },
-];
-
-const SOLVE_TIME_DATA = [
-  { day: "Mon", easy: 2, medium: 1, hard: 0 },
-  { day: "Tue", easy: 1, medium: 2, hard: 1 },
-  { day: "Wed", easy: 3, medium: 1, hard: 0 },
-  { day: "Thu", easy: 0, medium: 3, hard: 1 },
-  { day: "Fri", easy: 2, medium: 0, hard: 2 },
-  { day: "Sat", easy: 4, medium: 2, hard: 1 },
-  { day: "Sun", easy: 1, medium: 1, hard: 0 },
-];
-
-const PLATFORM_DATA = [
-  { name: "Codeforces", solved: 187, color: "#7C6FF7" },
-  { name: "LeetCode", solved: 124, color: "#22c87a" },
-  { name: "AtCoder", solved: 28, color: "#ffa726" },
-  { name: "HackerRank", solved: 8, color: "#42a5f5" },
-];
+const TOPIC_DATA = DSA_TOPICS.map(t=>({name:t.name.split(" ")[0],solved:t.problems,mastery:t.mastery}));
+const RADAR_DATA = [{s:"Arrays",A:88},{s:"DP",A:52},{s:"Graphs",A:67},{s:"Trees",A:74},{s:"SegTree",A:31},{s:"Greedy",A:79},{s:"Math",A:61},{s:"Binary",A:83}];
+const WEEK_DATA  = [{d:"Mon",e:2,m:1,h:0},{d:"Tue",e:1,m:2,h:1},{d:"Wed",e:3,m:1,h:0},{d:"Thu",e:0,m:3,h:1},{d:"Fri",e:2,m:0,h:2},{d:"Sat",e:4,m:2,h:1},{d:"Sun",e:1,m:1,h:0}];
+const PLATFORMS  = [{n:"Codeforces",v:187,c:"#00f5ff"},{n:"LeetCode",v:124,c:"#00ff88"},{n:"AtCoder",v:28,c:"#ffaa00"},{n:"HackerRank",v:8,c:"#bf00ff"}];
 
 export default function Analytics({ onNavigate }) {
-  const [timeRange, setTimeRange] = useState("3m");
-
-  const filteredRating = timeRange === "1m" ? RATING_HISTORY.slice(-2) :
-    timeRange === "3m" ? RATING_HISTORY.slice(-4) : RATING_HISTORY;
+  const [range, setRange] = useState("all");
+  const filtered = range==="1m"?RATING_HISTORY.slice(-2):range==="3m"?RATING_HISTORY.slice(-4):RATING_HISTORY;
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <div>
-            <div className="page-title">📊 <span>Analytics</span></div>
-            <div className="page-sub">Deep-dive into your competitive programming performance</div>
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {["1m", "3m", "all"].map(r => (
-              <button key={r} onClick={() => setTimeRange(r)} className={`btn btn-sm ${timeRange === r ? "btn-primary" : "btn-ghost"}`}>
-                {r === "all" ? "All time" : r}
-              </button>
-            ))}
-          </div>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}} className="s1">
+        <div>
+          <div className="ph-eye">performance intelligence</div>
+          <h1 className="ph-title">ANALYTICS <span className="c1">ENGINE</span></h1>
+          <p className="ph-sub">Deep-dive performance metrics · predictive rating modeling · multi-platform intelligence</p>
+        </div>
+        <div style={{display:"flex",gap:6,marginTop:4}}>
+          {["1m","3m","all"].map(r=>(
+            <button key={r} onClick={()=>setRange(r)} className={`btn btn-sm ${range===r?"btn-s":"btn-g"}`}>
+              {r==="all"?"ALL TIME":r.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Top stats */}
-      <div className="stats-grid" style={{ marginBottom: 20 }}>
+      {/* Stats */}
+      <div className="stat-grid s2">
         {[
-          { val: "1647", lbl: "Current Rating", delta: "+444 total gain", up: true },
-          { val: "Top 4.4%", lbl: "Global Rank", delta: "Best: top 3.5%", up: true },
-          { val: "74%", lbl: "Acceptance Rate", delta: "+6% vs last month", up: true },
-          { val: "2.3h", lbl: "Avg Solve Time", delta: "-18min vs last month", up: true },
-          { val: "28", lbl: "Contests", delta: "Next: May 18", up: true },
-        ].map((s, i) => (
-          <div key={i} className="stat-card">
-            <div className="stat-val">{s.val}</div>
-            <div className="stat-lbl">{s.lbl}</div>
-            <div className={`stat-delta ${s.up ? "delta-up" : "delta-dn"}`}>{s.delta}</div>
+          {v:"1647",      l:"CF Rating",    d:"↑444 total",           hot:"hc"},
+          {v:"Top 4.4%",  l:"Global Rank",  d:"Best: top 3.5%",       hot:"hg"},
+          {v:"74%",       l:"Accept Rate",  d:"↑6% vs last month",    hot:""},
+          {v:"2.3h",      l:"Avg Solve",    d:"↓18min improved",      hot:""},
+          {v:"28",        l:"Contests",     d:"Next: May 18",         hot:""},
+        ].map((s,i)=>(
+          <div key={i} className={`sm ${s.hot}`}>
+            <div className="sm-v">{s.v}</div>
+            <div className="sm-l">{s.l}</div>
+            <div className="sm-d du">{s.d}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 16 }}>
-        {/* Rating history */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Rating History</div>
-            <div className="card-sub">Codeforces trajectory</div>
+      {/* Row 1 */}
+      <div className="g2 mb16 s3">
+        <div className="hc ag">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">Rating Trajectory</div><div className="cs">Codeforces performance history</div></div><span className="tag tg">+444</span></div>
+            <ResponsiveContainer width="100%" height={185}>
+              <AreaChart data={filtered} margin={{top:4,right:4,bottom:0,left:-22}}>
+                <defs>
+                  <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00ff88" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#00ff88" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" tick={{fill:"#3a5a80",fontSize:10,fontFamily:"JetBrains Mono, monospace"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:"#3a5a80",fontSize:10}} axisLine={false} tickLine={false} domain={["dataMin-80","dataMax+80"]}/>
+                <Tooltip content={<CT/>}/>
+                <Area type="monotone" dataKey="rating" stroke="#00ff88" strokeWidth={2.5} fill="url(#ag)"
+                  dot={{fill:"#00ff88",r:3,strokeWidth:0}} activeDot={{r:6,fill:"#00f5ff",strokeWidth:0}} name="Rating"/>
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={filteredRating} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#7C6FF7" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#7C6FF7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} domain={["dataMin - 80", "dataMax + 80"]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="rating" stroke="#7C6FF7" strokeWidth={2.5} fill="url(#rg2)"
-                dot={{ fill: "#7C6FF7", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#a99ff9" }} />
-            </AreaChart>
-          </ResponsiveContainer>
         </div>
 
-        {/* Skill radar */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Skill Radar</div>
-            <div className="card-sub">Topic mastery overview</div>
+        <div className="hc ac">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">Skill Radar</div><div className="cs">8-axis mastery overview</div></div></div>
+            <ResponsiveContainer width="100%" height={185}>
+              <RadarChart data={RADAR_DATA} margin={{top:8,right:28,bottom:0,left:28}}>
+                <PolarGrid stroke="rgba(0,245,255,.07)"/>
+                <PolarAngleAxis dataKey="s" tick={{fill:"#3a5a80",fontSize:9,fontFamily:"JetBrains Mono, monospace"}}/>
+                <Radar name="Mastery" dataKey="A" stroke="#00f5ff" fill="#00f5ff" fillOpacity={0.12} strokeWidth={2} dot={{fill:"#00f5ff",r:3}}/>
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <RadarChart data={RADAR_DATA} margin={{ top: 10, right: 30, bottom: 0, left: 30 }}>
-              <PolarGrid stroke="rgba(255,255,255,0.07)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: "#5a6179", fontSize: 10 }} />
-              <Radar name="Mastery" dataKey="A" stroke="#7C6FF7" fill="#7C6FF7" fillOpacity={0.2} strokeWidth={2} />
-            </RadarChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 16 }}>
-        {/* Weekly solve volume */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">This Week — Solve Volume</div>
-            <div className="card-sub">Problems by difficulty</div>
+      {/* Row 2 */}
+      <div className="g2 mb16 s4">
+        <div className="hc">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">Weekly Volume</div><div className="cs">Solve count by difficulty</div></div></div>
+            <ResponsiveContainer width="100%" height={165}>
+              <BarChart data={WEEK_DATA} margin={{top:4,right:4,bottom:0,left:-22}}>
+                <XAxis dataKey="d" tick={{fill:"#3a5a80",fontSize:11,fontFamily:"JetBrains Mono, monospace"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:"#3a5a80",fontSize:10}} axisLine={false} tickLine={false}/>
+                <Tooltip content={<CT/>}/>
+                <Bar dataKey="e" stackId="a" fill="#00ff88" name="Easy"/>
+                <Bar dataKey="m" stackId="a" fill="#ffaa00" name="Medium"/>
+                <Bar dataKey="h" stackId="a" fill="#ff2244" name="Hard" radius={[4,4,0,0]}/>
+                <Legend wrapperStyle={{fontSize:10,color:"#3a5a80",fontFamily:"JetBrains Mono, monospace"}}/>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={SOLVE_TIME_DATA} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <XAxis dataKey="day" tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#5a6179", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="easy" stackId="a" fill="#22c87a" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="medium" stackId="a" fill="#ffa726" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="hard" stackId="a" fill="#ef5350" radius={[4, 4, 0, 0]} />
-              <Legend wrapperStyle={{ fontSize: 11, color: "#5a6179" }} />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
 
-        {/* Problems by topic */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Problems Solved by Topic</div>
-            <div className="card-sub">Exposure distribution</div>
+        <div className="hc">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">By Topic</div><div className="cs">Problem distribution</div></div></div>
+            <ResponsiveContainer width="100%" height={165}>
+              <BarChart data={TOPIC_DATA} layout="vertical" margin={{top:0,right:18,bottom:0,left:30}}>
+                <XAxis type="number" tick={{fill:"#3a5a80",fontSize:9}} axisLine={false} tickLine={false}/>
+                <YAxis type="category" dataKey="name" tick={{fill:"#7aa0c8",fontSize:10,fontFamily:"JetBrains Mono, monospace"}} axisLine={false} tickLine={false} width={50}/>
+                <Tooltip content={<CT/>}/>
+                <Bar dataKey="solved" radius={[0,4,4,0]} name="Solved">
+                  {TOPIC_DATA.map((e,i)=>(
+                    <Cell key={i} fill={e.mastery<60?"#ffaa00":e.mastery<80?"#00f5ff":"#00ff88"}/>
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={SOLVE_BY_TOPIC} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 30 }}>
-              <XAxis type="number" tick={{ fill: "#5a6179", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#9aa0b4", fontSize: 11 }} axisLine={false} tickLine={false} width={50} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="solved" radius={[0, 4, 4, 0]}>
-                {SOLVE_BY_TOPIC.map((entry, i) => (
-                  <Cell key={i} fill={entry.mastery < 60 ? "#ffa726" : entry.mastery < 80 ? "#42a5f5" : "#22c87a"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Platform breakdown + Contest history */}
-      <div className="grid-2" style={{ marginBottom: 16 }}>
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Platform Breakdown</div>
-            <div className="card-sub">Where you solve</div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {PLATFORM_DATA.map(p => (
-              <div key={p.name}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 500 }}>{p.name}</span>
-                  <span style={{ fontSize: 12, fontFamily: "JetBrains Mono, monospace", color: p.color }}>{p.solved} solved</span>
-                </div>
-                <div className="progress-track">
-                  <div className="progress-fill" style={{ width: `${(p.solved / 347) * 100}%`, background: p.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="divider" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {[
-              { lbl: "Codeforces Rating", val: "1647" },
-              { lbl: "LeetCode Ranking", val: "~85k" },
-              { lbl: "AtCoder Rating", val: "712" },
-              { lbl: "Total Problems", val: "347" },
-            ].map((s, i) => (
-              <div key={i} style={{ background: "var(--bg3)", borderRadius: 8, padding: "10px 12px" }}>
-                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "JetBrains Mono, monospace", color: "var(--text)" }}>{s.val}</div>
-                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>{s.lbl}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Contest Performance</div>
-            <div className="card-sub">Rating delta per contest</div>
-          </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={RECENT_CONTESTS.map(c => ({ name: c.name.replace("Codeforces Round ", "CF ").replace("Educational Round ", "EDU ").replace("Div.2 Round ", "D2 "), delta: c.delta }))} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
-              <XAxis dataKey="name" tick={{ fill: "#5a6179", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#5a6179", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="delta" radius={[4, 4, 0, 0]}>
-                {RECENT_CONTESTS.map((c, i) => <Cell key={i} fill={c.delta > 0 ? "#22c87a" : "#ef5350"} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="divider" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {RECENT_CONTESTS.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", background: "var(--bg3)", borderRadius: 8 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--text3)" }}>{c.date} · Rank #{c.rank.toLocaleString()}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: c.delta > 0 ? "#22c87a" : "#ef5350", fontFamily: "JetBrains Mono, monospace" }}>
-                    {c.delta > 0 ? "+" : ""}{c.delta}
+      {/* Row 3 */}
+      <div className="g2 mb16 s5">
+        <div className="hc">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">Platform Breakdown</div><div className="cs">Multi-platform presence</div></div></div>
+            <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:16}}>
+              {PLATFORMS.map(p=>(
+                <div key={p.n}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                    <span style={{fontSize:12,fontWeight:500,color:"#e8f4ff"}}>{p.n}</span>
+                    <span style={{fontFamily:"JetBrains Mono,monospace",fontSize:11,color:p.c,fontWeight:700}}>{p.v}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--text3)" }}>{c.solved}/5 solved</div>
+                  <div className="pt8"><div className="pf8" style={{width:`${(p.v/347)*100}%`,background:p.c,boxShadow:`0 0 8px ${p.c}66`}}/></div>
+                </div>
+              ))}
+            </div>
+            <div className="div"/>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {[{l:"CF Rating",v:"1647"},{l:"LC Rank",v:"~85k"},{l:"AtCoder",v:"712"},{l:"Total",v:"347"}].map((s,i)=>(
+                <div key={i} style={{background:"rgba(5,10,18,.85)",borderRadius:10,padding:"10px 12px",border:"1px solid rgba(0,245,255,.07)"}}>
+                  <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:16,fontWeight:700,color:"#e8f4ff"}}>{s.v}</div>
+                  <div style={{fontSize:10,color:"#3a5a80",marginTop:2,fontFamily:"JetBrains Mono,monospace"}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="hc">
+          <div className="cb">
+            <div className="ch"><div><div className="ct">Contest Deltas</div><div className="cs">Rating change per round</div></div></div>
+            <ResponsiveContainer width="100%" height={130}>
+              <BarChart data={RECENT_CONTESTS.map(c=>({name:c.name.replace("Codeforces Round ","CF ").replace("Educational Round ","EDU ").replace("Div.2 Round ","D2 "),delta:c.delta}))}
+                margin={{top:4,right:4,bottom:0,left:-10}}>
+                <XAxis dataKey="name" tick={{fill:"#3a5a80",fontSize:9,fontFamily:"JetBrains Mono, monospace"}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fill:"#3a5a80",fontSize:9}} axisLine={false} tickLine={false}/>
+                <Tooltip content={<CT/>}/>
+                <Bar dataKey="delta" radius={[4,4,0,0]} name="Delta">
+                  {RECENT_CONTESTS.map((c,i)=><Cell key={i} fill={c.delta>0?"#00ff88":"#ff2244"}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="div"/>
+            {RECENT_CONTESTS.map((c,i)=>(
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:10,padding:"9px 12px",
+                background:"rgba(5,10,18,.8)",borderRadius:8,marginBottom:6,
+                borderLeft:`3px solid ${c.delta>0?"#00ff88":"#ff2244"}`,
+                border:`1px solid ${c.delta>0?"rgba(0,255,136,.12)":"rgba(255,34,68,.12)"}`
+              }}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,fontWeight:600,color:"#e8f4ff"}}>{c.name}</div>
+                  <div style={{fontSize:9,color:"#3a5a80",fontFamily:"JetBrains Mono,monospace"}}>{c.date} · #{c.rank.toLocaleString()}</div>
+                </div>
+                <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:14,fontWeight:800,color:c.delta>0?"#00ff88":"#ff2244",textShadow:`0 0 10px ${c.delta>0?"#00ff88":"#ff2244"}`}}>
+                  {c.delta>0?"+":""}{c.delta}
                 </div>
               </div>
             ))}
@@ -239,27 +192,29 @@ export default function Analytics({ onNavigate }) {
         </div>
       </div>
 
-      {/* Prediction section */}
-      <div className="card" style={{ background: "rgba(124,111,247,0.05)", border: "1px solid rgba(124,111,247,0.2)" }}>
-        <div className="card-header">
-          <div>
-            <div className="card-title" style={{ color: "var(--accent2)" }}>🔮 AI Rating Prediction</div>
-            <div className="card-sub">LSTM model based on last 4 contests + skill profile</div>
-          </div>
-          <span className="tag tag-purple">87% confidence</span>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
-          {[
-            { lbl: "Predicted next delta", val: "+38 to +61", color: "#22c87a" },
-            { lbl: "Projected rating (3mo)", val: "1820–1890", color: "#7C6FF7" },
-            { lbl: "Target rank tier", val: "Candidate Master", color: "#ffa726" },
-            { lbl: "Key unlock", val: "Fix Seg Trees", color: "#ef5350" },
-          ].map((p, i) => (
-            <div key={i} style={{ background: "var(--bg3)", borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "JetBrains Mono, monospace", color: p.color }}>{p.val}</div>
-              <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>{p.lbl}</div>
+      {/* AI prediction block */}
+      <div className="hc ag s6" style={{border:"1px solid rgba(0,255,136,.2)",boxShadow:"0 0 40px rgba(0,255,136,.05)"}}>
+        <div className="cb">
+          <div className="ch">
+            <div>
+              <div className="ct" style={{color:"#00ff88",textShadow:"0 0 15px rgba(0,255,136,.4)"}}>◈ AI RATING PREDICTION</div>
+              <div className="cs">LSTM model · 50k+ contest records · transformer-based trajectory forecasting</div>
             </div>
-          ))}
+            <span className="tag tg">87% CONFIDENCE</span>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:12}}>
+            {[
+              {l:"Next contest delta",    v:"+38 → +61",     c:"#00ff88"},
+              {l:"Projected (3 months)", v:"1820–1890",      c:"#00f5ff"},
+              {l:"Target tier",          v:"Cand. Master",   c:"#ffaa00"},
+              {l:"Critical unlock",      v:"Segment Trees",  c:"#ff2244"},
+            ].map((p,i)=>(
+              <div key={i} style={{background:"rgba(5,10,18,.85)",borderRadius:12,padding:"14px 16px",border:"1px solid rgba(0,245,255,.07)"}}>
+                <div style={{fontFamily:"JetBrains Mono,monospace",fontSize:16,fontWeight:700,color:p.c,textShadow:`0 0 12px ${p.c}66`}}>{p.v}</div>
+                <div style={{fontSize:10,color:"#3a5a80",marginTop:5,fontFamily:"JetBrains Mono,monospace"}}>{p.l}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
